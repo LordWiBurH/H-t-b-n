@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Trang chủ - Công cụ tài chính & xây dựng</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f6f8fb; margin: 0; padding: 0;}
+    .container { max-width: 750px; margin: 30px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); padding: 32px;}
+    .menu-btn { background: #3578e5; color: #fff; padding: 10px 20px; border: none; border-radius: 6px; font-size: 1.1rem; margin: 12px 10px 12px 0; cursor: pointer;}
+    .menu-btn:hover { background: #285bb5;}
+    .back-btn { position: fixed; top: 20px; left: 22px; background: #1c396a; color: #fff; border: none; border-radius: 7px; padding: 8px 18px; font-size: 1rem; cursor: pointer; z-index: 2;}
+    h2 { text-align: center; margin-bottom: 28px; }
+    .case-block { border: 1px solid #eee; border-radius: 8px; margin: 18px 0; padding: 16px;}
+    .result-table { width: 100%; border-collapse: collapse; margin-top: 28px;}
+    .result-table th, .result-table td { border: 1px solid #ddd; padding: 8px; text-align: center;}
+    .result-table th { background: #f0f2f8;}
+  </style>
+</head>
+<body>
+<!-- Nút quay lại Trang chủ (luôn hiển thị, ẩn khi ở trang chủ) -->
+<button class="back-btn" style="display:none;" onclick="showHome()" id="btnHome">Trang chủ</button>
+
+<div class="container" id="mainContainer">
+  <!-- Trang chủ -->
+  <div id="homePage">
+    <h2>Trang chủ</h2>
+    <button class="menu-btn" onclick="showBank()">Ngân hàng: Tính vay lãi suất</button>
+    <button class="menu-btn" onclick="showBuild()">Chi phí xây dựng: Các loại hình nhà</button>
+    <div style="margin-top:50px; color:#888; font-size:1.05em; text-align:center;">
+      Chọn một chức năng để sử dụng
+    </div>
+  </div>
+
+  <!-- Ngân hàng: Tính vay lãi suất -->
+  <div id="bankPage" style="display:none;">
+    <h2>Ngân hàng<br><small>Tính vay lãi suất nhiều trường hợp</small></h2>
+    <label>Số tiền vay (VNĐ):</label>
+    <input type="number" id="principal" min="1" step="1000" placeholder="Nhập số tiền" />
+
+    <label style="margin-top:10px">Nhập số trường hợp muốn so sánh (tối đa 10):</label>
+    <input type="number" id="caseCount" min="1" max="10" value="2" style="width:60px;">
+    <button onclick="renderCases()">Tạo trường hợp</button>
+
+    <form id="casesForm"></form>
+    <button onclick="calcAll()" id="calcBtn" style="display:none;">Tính & So sánh</button>
+    <div id="result"></div>
+  </div>
+
+  <!-- Chi phí xây dựng -->
+  <div id="buildPage" style="display:none;">
+    <h2>Chi phí xây dựng<br><small>Các loại hình nhà</small></h2>
+    <label>Số kiểu nhà muốn so sánh (tối thiểu 6):</label>
+    <input type="number" id="homeCount" min="6" max="20" value="6" style="width:60px;">
+    <button onclick="renderHomes()">Tạo danh sách kiểu nhà</button>
+
+    <form id="homesForm"></form>
+    <button onclick="calcHomes()" id="calcHomeBtn" style="display:none;">Tính & So sánh</button>
+    <div id="resultHome"></div>
+  </div>
+</div>
+
+<script>
+// ====== Điều hướng ======
+function showHome() {
+  document.getElementById('homePage').style.display = '';
+  document.getElementById('bankPage').style.display = 'none';
+  document.getElementById('buildPage').style.display = 'none';
+  document.getElementById('btnHome').style.display = 'none';
+  document.title = 'Trang chủ - Công cụ tài chính & xây dựng';
+}
+function showBank() {
+  document.getElementById('homePage').style.display = 'none';
+  document.getElementById('bankPage').style.display = '';
+  document.getElementById('buildPage').style.display = 'none';
+  document.getElementById('btnHome').style.display = '';
+  document.title = 'Ngân hàng - Tính vay lãi suất';
+  // reset form
+  document.getElementById('casesForm').innerHTML = '';
+  document.getElementById('result').innerHTML = '';
+  document.getElementById('calcBtn').style.display = 'none';
+}
+function showBuild() {
+  document.getElementById('homePage').style.display = 'none';
+  document.getElementById('bankPage').style.display = 'none';
+  document.getElementById('buildPage').style.display = '';
+  document.getElementById('btnHome').style.display = '';
+  document.title = 'Chi phí xây dựng';
+  // reset form
+  document.getElementById('homesForm').innerHTML = '';
+  document.getElementById('resultHome').innerHTML = '';
+  document.getElementById('calcHomeBtn').style.display = 'none';
+}
+
+// ====== Ngân hàng: So sánh nhiều trường hợp vay ======
+function renderCases() {
+  let caseCount = parseInt(document.getElementById('caseCount').value) || 1;
+  if(caseCount < 1) caseCount = 1;
+  if(caseCount > 10) caseCount = 10;
+
+  let form = document.getElementById('casesForm');
+  form.innerHTML = '';
+  for(let i = 1; i <= caseCount; i++) {
+    form.innerHTML += `
+      <div class="case-block" id="caseBlock${i}">
+        <b>Trường hợp ${i}</b> <br>
+        Số giai đoạn: <input type="number" min="1" max="5" value="2" style="width:60px;" id="phaseCount_${i}" onchange="renderPhases(${i})">
+        <div id="phases_${i}"></div>
+      </div>
+    `;
+  }
+  for(let i = 1; i <= caseCount; i++) renderPhases(i);
+
+  document.getElementById('calcBtn').style.display = '';
+  document.getElementById('result').innerHTML = '';
+  setTimeout(()=>{ document.getElementById('calcBtn').style.display = ''; },100);
+}
+function renderPhases(caseIdx) {
+  let n = parseInt(document.getElementById(`phaseCount_${caseIdx}`).value) || 1;
+  if(n < 1) n = 1;
+  if(n > 5) n = 5;
+
+  let html = '';
+  for(let i=1; i<=n; i++) {
+    html += `
+      <div style="margin-left:10px;">
+        <b>Giai đoạn ${i}</b>:
+        <label>Số năm:</label>
+        <input type="number" min="1" max="100" value="1" id="year_${caseIdx}_${i}">
+        <label>Lãi suất (%/năm):</label>
+        <input type="number" min="0" max="100" step="0.01" value="10" id="rate_${caseIdx}_${i}">
+      </div>
+    `;
+  }
+  document.getElementById(`phases_${caseIdx}`).innerHTML = html;
+}
+function calcAll() {
+  let D = parseFloat(document.getElementById('principal').value);
+  if(isNaN(D) || D <= 0) {
+    alert('Vui lòng nhập số tiền vay hợp lệ!');
+    return;
+  }
+  let caseCount = parseInt(document.getElementById('caseCount').value) || 1;
+  let results = [];
+  for(let c=1; c<=caseCount; c++) {
+    let phaseCount = parseInt(document.getElementById(`phaseCount_${c}`).value) || 1;
+    let totalYear = 0;
+    let current = D;
+    let detail = [];
+    let isValid = true;
+    for(let p=1; p<=phaseCount; p++) {
+      let year = parseInt(document.getElementById(`year_${c}_${p}`).value) || 0;
+      let rate = parseFloat(document.getElementById(`rate_${c}_${p}`).value) || 0;
+      if(year<=0 || rate<=0) { isValid = false; break;}
+      let before = current;
+      current = current * Math.pow(1 + rate/100, year);
+      totalYear += year;
+      detail.push({giaiDoan:p, year, rate, before, after:current});
+    }
+    if(isValid)
+      results.push({
+        idx: c,
+        totalYear,
+        total: current,
+        interest: current - D,
+        detail
+      });
+    else
+      results.push({
+        idx: c,
+        error: "Thiếu số năm/lãi suất hợp lệ ở trường hợp "+c
+      });
+  }
+
+  // Hiển thị kết quả
+  let html = `<table class="result-table">
+    <tr>
+      <th>Trường hợp</th>
+      <th>Số năm</th>
+      <th>Tổng phải trả</th>
+      <th>Tiền lãi</th>
+      <th>Chi tiết</th>
+    </tr>`;
+  results.forEach(r=>{
+    if(r.error) {
+      html += `<tr><td colspan="5" style="color:#d92d2d;">${r.error}</td></tr>`;
+    } else {
+      let detail = r.detail.map(d=>
+        `GĐ${d.giaiDoan}: ${d.year} năm, ${d.rate}%/năm`
+      ).join('<br>');
+      html += `<tr>
+        <td>${r.idx}</td>
+        <td>${r.totalYear}</td>
+        <td>${r.total.toLocaleString('vi-VN',{style:'currency',currency:'VND'})}</td>
+        <td>${r.interest.toLocaleString('vi-VN',{style:'currency',currency:'VND'})}</td>
+        <td>${detail}</td>
+      </tr>`;
+    }
+  });
+  html += '</table>';
+  document.getElementById('result').innerHTML = html;
+}
+
+// ====== Chi phí xây dựng nhà ======
+function renderHomes() {
+  let count = parseInt(document.getElementById('homeCount').value) || 6;
+  if(count < 6) count = 6;
+  if(count > 20) count = 20;
+
+  let form = document.getElementById('homesForm');
+  form.innerHTML = '';
+  for(let i = 1; i <= count; i++) {
+    form.innerHTML += `
+      <div class="case-block" style="padding:10px 14px;margin-bottom:14px">
+        <b>Kiểu nhà ${i}:</b><br>
+        Tên kiểu nhà: <input type="text" id="home_name_${i}" placeholder="Nhập tên..." style="width:140px;">
+        Giá xây (/m²): <input type="number" min="1" id="home_price_${i}" placeholder="VNĐ/m²" style="width:90px;">
+        Diện tích xây (m²): <input type="number" min="1" id="home_area_${i}" placeholder="m²" style="width:70px;">
+      </div>
+    `;
+  }
+  document.getElementById('calcHomeBtn').style.display = '';
+  document.getElementById('resultHome').innerHTML = '';
+  setTimeout(()=>{ document.getElementById('calcHomeBtn').style.display = ''; },100);
+}
+
+function calcHomes() {
+  let count = parseInt(document.getElementById('homeCount').value) || 6;
+  let results = [];
+  for(let i = 1; i <= count; i++) {
+    let name = document.getElementById(`home_name_${i}`).value.trim() || `Kiểu nhà ${i}`;
+    let price = parseFloat(document.getElementById(`home_price_${i}`).value) || 0;
+    let area = parseFloat(document.getElementById(`home_area_${i}`).value) || 0;
+    if(price <= 0 || area <= 0) {
+      results.push({ idx: i, name, error: "Thiếu giá xây hoặc diện tích!" });
+    } else {
+      results.push({ idx: i, name, price, area, total: price * area });
+    }
+  }
+
+  // Tìm giá thấp nhất (hợp lệ)
+  let minTotal = Math.min(...results.filter(r=>!r.error).map(r=>r.total));
+  let html = `<table class="result-table">
+    <tr>
+      <th>Kiểu nhà</th>
+      <th>Tên kiểu nhà</th>
+      <th>Giá xây (/m²)</th>
+      <th>Diện tích (m²)</th>
+      <th>Tổng chi phí</th>
+    </tr>`;
+  results.forEach(r=>{
+    if(r.error) {
+      html += `<tr><td colspan="5" style="color:#d92d2d;">${r.name}: ${r.error}</td></tr>`;
+    } else {
+      let isMin = (r.total === minTotal);
+      html += `<tr${isMin ? ' style="background:#e8ffe6;font-weight:bold;"':''}>
+        <td>${r.idx}</td>
+        <td>${r.name}</td>
+        <td>${r.price.toLocaleString('vi-VN')}</td>
+        <td>${r.area.toLocaleString('vi-VN')}</td>
+        <td>${r.total.toLocaleString('vi-VN', {style:'currency',currency:'VND'})}${isMin ? '<br>★ Giá hợp lý nhất' : ''}</td>
+      </tr>`;
+    }
+  });
+  html += `</table>`;
+  document.getElementById('resultHome').innerHTML = html;
+}
+
+// Mặc định hiển thị trang chủ khi load
+showHome();
+</script>
+</body>
+</html>
