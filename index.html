@@ -204,7 +204,7 @@ function calcAll() {
 // ====== Chi phí xây dựng nhà ======
 function renderHomes() {
   let count = parseInt(document.getElementById('homeCount').value) || 1;
-  if(count < 6) count = 6;
+  if(count < 1) count = 1;
   if(count > 20) count = 20;
 
   let form = document.getElementById('homesForm');
@@ -318,5 +318,6 @@ showHome();
 </script>
 </body>
 </html>
+
 
 
