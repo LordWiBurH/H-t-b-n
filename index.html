@@ -51,7 +51,7 @@
   <div id="buildPage" style="display:none;">
     <h2>Chi phí xây dựng<br><small>Các loại hình nhà</small></h2>
     <label>Số kiểu nhà muốn so sánh :</label>
-    <input type="number" id="homeCount" min="1" max="20" value="2" style="width:60px;">
+    <input type="number" id="homeCount" min="2" max="20" value="2" style="width:60px;">
     <button onclick="renderHomes()">Tạo danh sách kiểu nhà</button>
 
     <form id="homesForm"></form>
@@ -203,8 +203,8 @@ function calcAll() {
 
 // ====== Chi phí xây dựng nhà ======
 function renderHomes() {
-  let count = parseInt(document.getElementById('homeCount').value) || 1;
-  if(count < 1) count = 1;
+  let count = parseInt(document.getElementById('homeCount').value) || 2;
+  if(count < 2) count = 2;
   if(count > 20) count = 20;
 
   let form = document.getElementById('homesForm');
@@ -252,7 +252,9 @@ function toggleArea(idx) {
 }
 
 function calcHomes() {
-  let count = parseInt(document.getElementById('homeCount').value) || 1;
+  let count = parseInt(document.getElementById('homeCount').value) || 2;
+  if(count < 2) count = 2;
+  if(count > 20) count = 20;
   let results = [];
   for(let i = 1; i <= count; i++) {
     let name = document.getElementById(`home_name_${i}`).value.trim() || `Kiểu nhà ${i}`;
@@ -318,7 +320,3 @@ showHome();
 </script>
 </body>
 </html>
-
-
-
-
