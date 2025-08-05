@@ -252,7 +252,7 @@ function toggleArea(idx) {
 }
 
 function calcHomes() {
-  let count = parseInt(document.getElementById('homeCount').value) || 6;
+  let count = parseInt(document.getElementById('homeCount').value) || 1;
   let results = [];
   for(let i = 1; i <= count; i++) {
     let name = document.getElementById(`home_name_${i}`).value.trim() || `Kiểu nhà ${i}`;
@@ -318,4 +318,5 @@ showHome();
 </script>
 </body>
 </html>
+
 
