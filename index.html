@@ -90,6 +90,8 @@ function showBuild() {
   document.getElementById('homesForm').innerHTML = '';
   document.getElementById('resultHome').innerHTML = '';
   document.getElementById('calcHomeBtn').style.display = 'none';
+  // --- Tự động render đúng số kiểu nhà khi vừa mở tab ---
+  renderHomes();
 }
 
 // ====== Ngân hàng: So sánh nhiều trường hợp vay ======
@@ -317,6 +319,11 @@ function calcHomes() {
 
 // Mặc định hiển thị trang chủ khi load
 showHome();
+
+// --- Khi trang vừa load, tự động render đúng số kiểu nhà ban đầu ---
+document.addEventListener('DOMContentLoaded', () => {
+  renderHomes();
+});
 </script>
 </body>
 </html>
